@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}EOD Detail{% endblock %}
+{% block nav_history %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 id="detail-title">EOD Report</h1>
+  <p id="detail-sub"></p>
+</div>
+
+<div class="panel">
+  <div class="summary-grid" id="summary-grid"></div>
+</div>
+
+<div class="panel">
+  <h2>Total deposit breakdown</h2>
+  <table class="breakdown-table" id="deposit-view"><tbody></tbody></table>
+</div>
+
+<div class="panel">
+  <h2>Total redeem breakdown</h2>
+  <table class="breakdown-table" id="redeem-view"><tbody></tbody></table>
+</div>
+
+<button class="btn" id="copy-btn" style="margin-top:16px">Copy as text</button>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const eodId = {{ eod_id }};
+let reportData = null;
+
+function money(n) {
+  return '$' + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function renderBreakdownTable(elId, items) {
+  const tbody = document.querySelector(`#${elId} tbody`);
+  tbody.innerHTML = items.map(i => `
+    <tr><td>${i.method}</td><td class="amount-col amount">${money(i.amount)}</td></tr>
+  `).join('') || '<tr><td colspan="2" style="color:var(--text-dim)">No breakdown recorded.</td></tr>';
+}
+
+async function load() {
+  const res = await fetch(`/api/eod/${eodId}`);
+  if (res.status === 401) { window.location = '/login'; return; }
+  if (!res.ok) {
+    document.getElementById('detail-title').textContent = 'Report not found';
+    return;
+  }
+  const r = await res.json();
+  reportData = r;
+
+  document.getElementById('detail-title').textContent = `${r.page_name} — ${r.report_date}`;
+  document.getElementById('detail-sub').textContent = `Submitted by ${r.username}`;
+
+  document.getElementById('summary-grid').innerHTML = `
+    <div class="stat"><div class="label">Redeem processed</div><div class="value">${r.redeem_processed_count}</div></div>
+    <div class="stat"><div class="label">Redeem paid (count)</div><div class="value">${r.redeem_paid_count}</div></div>
+    <div class="stat"><div class="label">Redeem pending (count)</div><div class="value">${r.redeem_pending_count}</div></div>
+    <div class="stat"><div class="label">Redeem paid (amount)</div><div class="value">${money(r.redeem_paid_amount)}</div></div>
+    <div class="stat"><div class="label">Redeem pending (amount)</div><div class="value">${money(r.redeem_pending_amount)}</div></div>
+    <div class="stat"><div class="label">Grand total deposit</div><div class="value">${money(r.grand_total_deposit)}</div></div>
+  `;
+
+  renderBreakdownTable('deposit-view', r.deposit_breakdown);
+  renderBreakdownTable('redeem-view', r.redeem_breakdown);
+}
+
+document.getElementById('copy-btn').addEventListener('click', () => {
+  if (!reportData) return;
+  const r = reportData;
+  const depositLines = r.deposit_breakdown.map(i => `  ${i.method}: ${money(i.amount)}`).join('\n') || '  (none)';
+  const redeemLines = r.redeem_breakdown.map(i => `  ${i.method}: ${money(i.amount)}`).join('\n') || '  (none)';
+  const text = `Page name: ${r.page_name}
+
+Total number of redeem processed: ${r.redeem_processed_count}
+
+Total amount of redeem paid: ${money(r.redeem_paid_amount)}
+Total number of redeem paid: ${r.redeem_paid_count}
+
+Total amount of redeem pending: ${money(r.redeem_pending_amount)}
+Total number of redeem pending: ${r.redeem_pending_count}
+
+Total deposit breakdown:
+${depositLines}
+
+Total redeem breakdown:
+${redeemLines}
+
+Grand total of deposit: ${money(r.grand_total_deposit)}`;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('copy-btn');
+  const original = btn.textContent;
+  btn.textContent = 'Copied!';
+  setTimeout(() => { btn.textContent = original; }, 1500);
+});
+
+load();
+</script>
+{% endblock %}

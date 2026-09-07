@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}New EOD - EOD Reports{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 id="page-title">New EOD</h1>
+  <p>Enter the redeem counts manually, then upload today's dashboard screenshot to fill in the amounts.</p>
+</div>
+
+<form id="eod-form">
+  <input type="hidden" id="page_id" />
+
+  <div class="panel">
+    <h2>Report details</h2>
+    <div class="field-row-2">
+      <div class="field">
+        <label>Page</label>
+        <input type="text" id="page_name_display" disabled />
+      </div>
+      <div class="field">
+        <label for="report_date">Date</label>
+        <input type="date" id="report_date" required />
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Redeem counts (manual entry)</h2>
+    <div class="field-row">
+      <div class="field">
+        <label for="redeem_processed_count">Total number of redeem processed</label>
+        <input type="number" id="redeem_processed_count" min="0" required />
+      </div>
+      <div class="field">
+        <label for="redeem_paid_count">Total number of redeem paid</label>
+        <input type="number" id="redeem_paid_count" min="0" required />
+      </div>
+      <div class="field">
+        <label for="redeem_pending_count">Total number of redeem pending</label>
+        <input type="number" id="redeem_pending_count" min="0" required />
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Screenshot (auto-fill amounts)</h2>
+    <div id="upload-drop" class="upload-drop">
+      <input type="file" id="screenshot_input" accept="image/*" style="display:none" />
+      <span id="upload-label">Click to choose today's dashboard screenshot</span>
+    </div>
+    <button type="button" id="extract-btn" class="btn btn-primary" style="margin-top:12px" disabled>
+      Extract amounts from screenshot
+    </button>
+    <div id="extract-status"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Deposit breakdown</h2>
+    <table class="breakdown-table" id="deposit-table">
+      <thead><tr><th>Method</th><th class="amount-col">Amount</th><th class="remove-col"></th></tr></thead>
+      <tbody></tbody>
+      <tfoot>
+        <tr class="total-row"><td>Grand total of deposit</td><td colspan="2"><input type="number" step="0.01" id="grand_total_deposit" required /></td></tr>
+      </tfoot>
+    </table>
+    <button type="button" class="btn" id="add-deposit-row" style="margin-top:10px">+ Add method</button>
+  </div>
+
+  <div class="panel">
+    <h2>Redeem breakdown</h2>
+    <table class="breakdown-table" id="redeem-table">
+      <thead><tr><th>Method</th><th class="amount-col">Amount</th><th class="remove-col"></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <button type="button" class="btn" id="add-redeem-row" style="margin-top:10px">+ Add method</button>
+
+    <div class="field-row-2" style="margin-top:18px">
+      <div class="field">
+        <label for="redeem_paid_amount">Total amount of redeem paid</label>
+        <input type="number" step="0.01" id="redeem_paid_amount" required />
+      </div>
+      <div class="field">
+        <label for="redeem_pending_amount">Total amount of redeem pending</label>
+        <input type="number" step="0.01" id="redeem_pending_amount" required />
+      </div>
+    </div>
+  </div>
+
+  <div id="submit-status"></div>
+  <button type="submit" class="btn btn-primary btn-full" id="submit-btn" style="margin-top:8px">
+    Save EOD
+  </button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/eod_form.js"></script>
+{% endblock %}

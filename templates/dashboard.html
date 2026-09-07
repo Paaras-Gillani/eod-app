@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Pages - EOD Reports{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Select a page</h1>
+  <p>Choose which gaming page you're filing an EOD for.</p>
+</div>
+
+<div id="page-grid" class="page-grid"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadPages() {
+  const res = await fetch('/api/pages');
+  if (res.status === 401) { window.location = '/login'; return; }
+  const pages = await res.json();
+  const grid = document.getElementById('page-grid');
+  if (pages.length === 0) {
+    grid.innerHTML = '<div class="empty-state">No pages configured yet.</div>';
+    return;
+  }
+  grid.innerHTML = pages.map(p => `
+    <a class="page-tile" href="/eod/new?page_id=${p.id}&page_name=${encodeURIComponent(p.name)}">
+      <div class="name">${p.name}</div>
+      <div class="hint">File today's EOD →</div>
+    </a>
+  `).join('');
+}
+loadPages();
+</script>
+{% endblock %}

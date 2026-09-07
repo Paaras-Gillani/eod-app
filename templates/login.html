@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log in - EOD Reports</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card">
+      <h1>EOD Reports</h1>
+      <p class="sub">Sign in with your staff account.</p>
+      {% if error %}
+        <div class="status-msg error">Incorrect username or password.</div>
+        <div style="height:12px"></div>
+      {% endif %}
+      <form action="/login" method="post">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required autofocus />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required />
+        </div>
+        <button class="btn btn-primary btn-full" type="submit">Log in</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

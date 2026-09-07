@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}EOD Reports{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  {% if user %}
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span> EOD Reports</div>
+    <nav>
+      <a href="/" class="{% block nav_dashboard %}{% endblock %}">Pages</a>
+      <a href="/history" class="{% block nav_history %}{% endblock %}">History</a>
+    </nav>
+    <div class="user">
+      <span>{{ user.username }}</span>
+      <form action="/logout" method="post"><button class="btn-link" type="submit">Log out</button></form>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="page">
+    {% block content %}{% endblock %}
+  </div>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}History - EOD Reports{% endblock %}
+{% block nav_history %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>EOD history</h1>
+  <p>All submitted end-of-day reports, most recent first.</p>
+</div>
+
+<div class="filters">
+  <div class="field">
+    <label for="filter-page">Page</label>
+    <select id="filter-page"><option value="">All pages</option></select>
+  </div>
+  <div class="field">
+    <label for="filter-start">From</label>
+    <input type="date" id="filter-start" />
+  </div>
+  <div class="field">
+    <label for="filter-end">To</label>
+    <input type="date" id="filter-end" />
+  </div>
+  <button class="btn" id="filter-apply">Apply</button>
+</div>
+
+<div class="panel">
+  <table class="history-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Page</th>
+        <th>Submitted by</th>
+        <th>Redeem paid</th>
+        <th>Redeem pending</th>
+        <th>Grand total deposit</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="history-body"></tbody>
+  </table>
+  <div id="history-empty" class="empty-state" style="display:none">No reports match those filters.</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadPagesIntoFilter() {
+  const res = await fetch('/api/pages');
+  if (res.status === 401) { window.location = '/login'; return; }
+  const pages = await res.json();
+  const select = document.getElementById('filter-page');
+  pages.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name;
+    select.appendChild(opt);
+  });
+}
+
+function money(n) {
+  return '$' + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+async function loadHistory() {
+  const pageId = document.getElementById('filter-page').value;
+  const start = document.getElementById('filter-start').value;
+  const end = document.getElementById('filter-end').value;
+
+  const qs = new URLSearchParams();
+  if (pageId) qs.set('page_id', pageId);
+  if (start) qs.set('start_date', start);
+  if (end) qs.set('end_date', end);
+
+  const res = await fetch('/api/eod?' + qs.toString());
+  if (res.status === 401) { window.location = '/login'; return; }
+  const reports = await res.json();
+
+  const body = document.getElementById('history-body');
+  const empty = document.getElementById('history-empty');
+
+  if (reports.length === 0) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  body.innerHTML = reports.map(r => `
+    <tr>
+      <td>${r.report_date}</td>
+      <td>${r.page_name}</td>
+      <td>${r.username}</td>
+      <td class="amount">${money(r.redeem_paid_amount)}</td>
+      <td class="amount">${money(r.redeem_pending_amount)}</td>
+      <td class="amount">${money(r.grand_total_deposit)}</td>
+      <td><a href="/eod/${r.id}">View →</a></td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('filter-apply').addEventListener('click', loadHistory);
+loadPagesIntoFilter().then(loadHistory);
+</script>
+{% endblock %}
